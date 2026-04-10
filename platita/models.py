@@ -27,11 +27,13 @@ class Perfil(models.Model):
 # 3. Tabla de Gastos y Planificación 
 class Gasto(models.Model):
     CATEGORIAS = [
-        ('ALIMENTACION', 'Alimentación'),
-        ('TRANSPORTE', 'Transporte'),
-        ('ENTRETENCION', 'Entretenimiento'),
-        ('SERVICIOS', 'Servicios/Luz/Agua'),
-        ('OTROS', 'Otros'),
+        ('ALIMENTACION', '🍎 Alimentación'),
+        ('TRANSPORTE', '🚌 Transporte'),
+        ('ENTRETENCION', '🎮 Entretenimiento'),
+        ('SERVICIOS', '💡 Servicios/Luz/Agua'),
+        ('ESTUDIOS', '📚 Estudios/PC'), 
+        ('HOGAR', '🏠 Hogar/Muebles'),  # <--- CATEGORÍA AGREGADA
+        ('OTROS', '✨ Otros'),
     ]
     TIPO_GASTO = [
         ('MES', 'Gasto del Mes'),
@@ -39,14 +41,22 @@ class Gasto(models.Model):
         ('FUTURO', 'Gasto Próximo/Planificado'),
     ]
     
-    hogar = models.ForeignKey(Hogar, on_delete=models.CASCADE, related_name='gastos', null=True, blank=True)
-    creado_por = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    hogar = models.ForeignKey(Hogar, on_delete=models.CASCADE, related_name='gastos')
+    creado_por = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='mis_gastos')
     
     nombre = models.CharField(max_length=100)
     monto = models.IntegerField()
     categoria = models.CharField(max_length=20, choices=CATEGORIAS, default='OTROS')
     tipo = models.CharField(max_length=10, choices=TIPO_GASTO, default='MES')
-    fecha = models.DateField()
+    
+    fecha = models.DateField() 
+    fecha_registro = models.DateTimeField(auto_now_add=True) 
+    comentario = models.TextField(blank=True, null=True) 
+
+    class Meta:
+        verbose_name = "Gasto"
+        verbose_name_plural = "Gastos"
+        ordering = ['-fecha'] 
 
     def __str__(self):
         return f"{self.nombre} (${self.monto}) - {self.hogar.nombre}"

@@ -1,0 +1,144 @@
+/* Colores de Perfil */
+.border-renato { border-left: 5px solid #26a69a !important; }
+.border-belen { border-left: 5px solid #ce93d8 !important; }
+.text-renato { color: #26a69a !important; }
+.text-belen { color: #ce93d8 !important; }
+
+/* Estructura Principal */
+.main-card {
+    background-color: white;
+    border-radius: 20px;
+}
+
+.card-sueldo {
+    transition: transform 0.2s ease;
+    border: none;
+    border-radius: 15px;
+}
+
+.card-sueldo:hover {
+    transform: translateY(-2px);
+}
+
+.text-primary-teal {
+    color: #26a69a;
+}
+
+/* El carril de la barra (vacío) */
+.progress {
+    height: 12px;
+    border-radius: 10px;
+    background-color: #e9ecef !important; /* Gris claro para que se note el camino */
+    overflow: hidden;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,.1);
+}
+
+/* El relleno (lo que se va llenando) */
+.progress-bar {
+    background-color: #26a69a !important; /* Tu color Teal */
+    transition: width 0.4s ease; /* Para que "crezca" suavemente cuando agregas algo */
+}
+
+/* Color de alerta si te pasas del 90% */
+.bg-danger {
+    background-color: #dc3545 !important;
+}
+
+.bg-teal {
+    background-color: #26a69a;
+}
+
+/* Botones de Acción */
+.btn-add-section {
+    border-radius: 50%;
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 1px solid #dee2e6;
+    color: #6c757d;
+    background-color: transparent;
+    transition: all 0.2s;
+}
+
+.btn-add-section:hover {
+    background-color: #26a69a;
+    color: white;
+    border-color: #26a69a;
+}
+
+.btn-action {
+    color: #ced4da;
+    transition: 0.2s;
+    text-decoration: none;
+}
+
+.btn-action-delete:hover {
+    color: #dc3545;
+}
+
+/* Inputs del Modal */
+.form-control, .form-select {
+    border-radius: 10px;
+    border: 1px solid #e9ecef;
+    padding: 10px 15px;
+}
+
+.form-control:focus {
+    border-color: #26a69a;
+    box-shadow: 0 0 0 0.2rem rgba(38, 166, 154, 0.1);
+}
+
+.mes-selector-container {
+    display: flex;
+    overflow-x: auto;
+    padding: 10px 5px;
+    gap: 12px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    background-color: #f8f9fa;
+    border-radius: 20px;
+    margin-bottom: 20px;
+    border: 1px solid #e9ecef;
+}
+
+.mes-selector-container::-webkit-scrollbar {
+    display: none;
+}
+
+.btn-mes {
+    min-width: 100px;
+    padding: 10px 15px;
+    border-radius: 15px;
+    border: 2px solid transparent;
+    background-color: white;
+    color: #6c757d;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-align: center;
+    text-decoration: none;
+    transition: all 0.2s ease-in-out;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.btn-mes:hover {
+    background-color: #f1f3f5;
+    color: #26a69a;
+    transform: translateY(-1px);
+}
+
+.btn-mes.active {
+    background-color: #26a69a;
+    color: white !important;
+    border-color: #26a69a;
+    box-shadow: 0 4px 10px rgba(38, 166, 154, 0.3);
+}
+
+.btn-mes .anio-label {
+    display: block;
+    font-size: 0.7rem;
+    opacity: 0.8;
+    font-weight: 400;
+}

@@ -233,7 +233,7 @@
                 <a href="{% url 'sueldos' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'sueldos' %}active{% endif %}">
                     <i class="bi bi-wallet2"></i> Sueldo
                 </a>
-                <a href="#" class="nav-link-custom">
+                <a href="{% url 'gastos' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'gastos' %}active{% endif %}">
                     <i class="bi bi-cash-stack"></i> Gastos
                 </a>
                 <a href="#" class="nav-link-custom">
