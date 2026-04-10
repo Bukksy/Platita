@@ -1,0 +1,36 @@
+:root {
+    --renato-teal: #26a69a;
+    --belen-purple: #ce93d8;
+}
+
+.main-card {
+    background-color: white;
+    border-radius: 20px;
+}
+
+.titulos {
+    font-weight: 700;
+    font-size: 1.25rem;
+    color: #2d3436;
+}
+
+.card-sueldo {
+    border: 1px solid #f1f3f5;
+    border-radius: 15px;
+    background-color: #fff;
+    transition: transform 0.2s;
+}
+
+/* El truco del borde lateral grueso */
+.border-renato {
+    border-left: 5px solid var(--renato-teal) !important;
+}
+
+.border-belen {
+    border-left: 5px solid var(--belen-purple) !important;
+}
+
+.text-renato { color: var(--renato-teal); }
+.text-belen { color: var(--belen-purple); }
+
+.text-primary-teal { color: #4db6ac; }

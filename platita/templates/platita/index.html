@@ -1,0 +1,107 @@
+{% extends 'platita/base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'platita/css/index.css' %}">
+    <style>
+        .border-renato { border-left: 5px solid #26a69a !important; }
+        .border-belen { border-left: 5px solid #ce93d8 !important; }
+        .text-renato { color: #26a69a !important; }
+        .text-belen { color: #ce93d8 !important; }
+        
+        .card-sueldo {
+            transition: transform 0.2s ease;
+            border: none;
+        }
+        .card-sueldo:hover {
+            transform: translateY(-3px);
+        }
+        .main-card {
+            background-color: white;
+            border-radius: 20px;
+        }
+        .text-primary-teal { color: var(--primary-teal); }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="container p-0">
+    <div class="main-card shadow-sm border-0 p-4 mb-4">
+        <div class="d-flex align-items-center mb-4">
+            <i class="bi bi-cash-stack me-2 text-primary-teal fs-4"></i>
+            <h2 class="titulos m-0">Ingresos de {{ nombre_mes_actual }}</h2>
+        </div>
+
+        <div class="row g-3">
+            {% for registro in integrantes %}
+                <div class="col-md-6">
+                    <div class="card card-sueldo h-100 p-3 shadow-sm 
+                        {% if registro.perfil.usuario.username|lower == 'renato' %}border-renato
+                        {% elif registro.perfil.usuario.username|lower == 'belen' %}border-belen
+                        {% else %}border-start border-4{% endif %}">
+                        
+                        <p class="text-muted mb-2">Sueldo de {{ registro.perfil.usuario.username|title }}</p>
+                        
+                        <h3 class="fw-bold m-0 
+                            {% if registro.perfil.usuario.username|lower == 'renato' %}text-renato
+                            {% elif registro.perfil.usuario.username|lower == 'belen' %}text-belen
+                            {% endif %}">
+                            ${{ registro.total_mes|floatformat:0|intcomma }}
+                        </h3>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="col-12">
+                    <p class="text-muted">No hay registros para {{ nombre_mes_actual }}.</p>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="mt-4 pt-3 border-top d-flex justify-content-between align-items-center">
+            <p class="text-muted m-0">Total {{ nombre_mes_actual }}</p>
+            <h3 class="fw-bold m-0 text-primary-teal">${{ total_ingresos|floatformat:0|intcomma }}</h3>
+        </div>
+    </div>
+
+    <div class="main-card shadow-sm border-0 p-4">
+        <div class="d-flex align-items-center mb-4">
+            <i class="bi bi-calendar-check me-2 text-muted fs-4"></i>
+            <h2 class="titulos m-0">Ingresos de {{ nombre_mes_proximo }} - Próximamente</h2>
+        </div>
+
+        <div class="row g-3">
+            {% for registro in integrantes_proximo %}
+                <div class="col-md-6">
+                    <div class="card card-sueldo h-100 p-3 shadow-sm 
+                        {% if registro.perfil.usuario.username|lower == 'renato' %}border-renato
+                        {% elif registro.perfil.usuario.username|lower == 'belen' %}border-belen
+                        {% else %}border-start border-4{% endif %}">
+                        
+                        <p class="text-muted mb-2">Sueldo de {{ registro.perfil.usuario.username|title }}</p>
+                        
+                        <h3 class="fw-bold m-0 
+                            {% if registro.perfil.usuario.username|lower == 'renato' %}text-renato
+                            {% elif registro.perfil.usuario.username|lower == 'belen' %}text-belen
+                            {% endif %}">
+                            ${{ registro.total_mes|floatformat:0|intcomma }}
+                        </h3>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="col-12">
+                    <p class="text-muted">No hay registros para {{ nombre_mes_proximo }}.</p>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="mt-4 pt-3 border-top d-flex justify-content-between align-items-center">
+            <p class="text-muted m-0">Total {{ nombre_mes_proximo }}</p>
+            <h3 class="fw-bold m-0 text-secondary">${{ total_proximo|floatformat:0|intcomma }}</h3>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% endblock %}
