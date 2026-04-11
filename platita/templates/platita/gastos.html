@@ -7,21 +7,22 @@
 {% endblock %}
 
 {% block content %}
-    <div class="container p-0 mb-5">
+    <div class="container p-0 mb-5 {% if user.username|lower == 'renato' %}theme-teal{% else %}theme-purple{% endif %}">
         
         <div class="mes-selector-container">
             {% for m in meses_opciones %}
             <a href="?mes={{ m.n }}&anio={{ m.a|stringformat:"d" }}" 
-            class="btn-mes {% if m.n == mes_sel %}active{% endif %}">
+            class="btn-mes {% if m.n == mes_sel %}active{% endif %}"
+            style="{% if m.n == mes_sel %}background-color: var(--active-color); color: white;{% endif %}">
                 {{ m.nombre }}
                 <span class="anio-label">{{ m.a|stringformat:"d" }}</span>
             </a>
             {% endfor %}
         </div>
 
-        <div class="main-card shadow-sm border-0 p-4 mb-4">
+        <div class="main-card shadow-sm border-0 p-4 mb-4 bg-white rounded-4">
             <div class="d-flex align-items-center mb-3">
-                <i class="bi bi-calculator me-2 text-primary-teal fs-4"></i>
+                <i class="bi bi-calculator me-2 fs-4" style="color: var(--active-color);"></i>
                 <h2 class="titulos m-0">Balance de {{ mes_nombre }} {{ anio_sel }}</h2>
             </div>
 
@@ -32,36 +33,38 @@
                 </div>
                 <div class="col-6 text-end">
                     <p class="text-muted mb-1 small text-uppercase fw-bold">Saldo</p>
-                    <h4 class="fw-bold {% if saldo_restante < 0 %}text-danger{% else %}text-primary-teal{% endif %}">
+                    <h4 class="fw-bold" style="color: {% if saldo_restante < 0 %}#f28b82{% else %}var(--active-color){% endif %};">
                         ${{ saldo_restante|floatformat:"0"|intcomma }}
                     </h4>
                 </div>
             </div>
 
             <div class="mt-3">
-                <div class="progress" style="height: 12px; background-color: #e9ecef !important; border-radius: 10px; overflow: hidden;">
-                    <div class="progress-bar {% if porcentaje > 90 %}bg-danger{% else %}bg-teal{% endif %}" 
-                        role="progressbar" 
-                        style="width: {{ porcentaje|stringformat:".2f" }}% !important;" 
-                        aria-valuenow="{{ porcentaje|stringformat:".2f" }}" 
-                        aria-valuemin="0" 
-                        aria-valuemax="100">
+                <div class="progress" style="height: 12px; background-color: var(--soft-active) !important; border-radius: 10px; overflow: hidden;">
+                    <div class="progress-bar" 
+                         role="progressbar" 
+                         style="width: {{ porcentaje|stringformat:".2f" }}% !important; background-color: {% if porcentaje > 90 %}#f28b82{% else %}var(--active-color){% endif %} !important;" 
+                         aria-valuenow="{{ porcentaje|stringformat:".2f" }}" 
+                         aria-valuemin="0" 
+                         aria-valuemax="100">
                     </div>
                 </div>
                 <div class="d-flex justify-content-between mt-2">
                     <small class="text-muted">Gastado: <strong>${{ total_gastos|floatformat:"0"|intcomma }}</strong></small>
-                    <small class="text-muted fw-bold">{{ porcentaje|stringformat:".0f" }}% del sueldo</small>
+                    <small class="text-muted fw-bold" style="color: var(--active-color);">{{ porcentaje|stringformat:".0f" }}% del sueldo</small>
                 </div>
             </div>
         </div>
 
-        <div class="main-card shadow-sm border-0 p-4 mb-4">
+        <div class="main-card shadow-sm border-0 p-4 mb-4 bg-white rounded-4">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div class="d-flex align-items-center">
-                    <i class="bi bi-pin-angle me-2 text-primary-teal fs-4"></i>
+                    <i class="bi bi-pin-angle me-2 fs-4" style="color: var(--active-color);"></i>
                     <h2 class="titulos m-0">Gastos Fijos</h2>
                 </div>
-                <button class="btn btn-add-section" data-bs-toggle="modal" data-bs-target="#modalGasto" onclick="setGastoTipo('FIJO')">
+                <button class="btn border-0 shadow-sm text-white" 
+                        style="background-color: var(--active-color); border-radius: 12px; width: 40px; height: 40px;"
+                        data-bs-toggle="modal" data-bs-target="#modalGasto" onclick="setGastoTipo('FIJO')">
                     <i class="bi bi-plus-lg"></i>
                 </button>
             </div>
@@ -69,17 +72,16 @@
             <div class="row g-2">
                 {% for gasto in gastos_fijos %}
                 <div class="col-12">
-                    <div class="card card-sueldo p-3 shadow-sm border-start border-4 border-info">
+                    <div class="card p-3 shadow-sm border-0 border-start border-4 rounded-3" 
+                         style="border-color: var(--active-color) !important; background-color: #fafbfc;">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
                                 <p class="m-0 fw-bold text-dark small">{{ gasto.nombre }}</p>
-                                <small class="text-muted">
-                                    {{ gasto.get_categoria_display }}
-                                </small>
+                                <small class="text-muted">{{ gasto.get_categoria_display }}</small>
                             </div>
                             <div class="d-flex align-items-center">
                                 <h5 class="fw-bold m-0 text-dark me-3">${{ gasto.monto|intcomma }}</h5>
-                                <a href="{% url 'eliminar_gasto' gasto.id %}" class="btn-action btn-action-delete" onclick="return confirm('¿Borrar?')">
+                                <a href="{% url 'eliminar_gasto' gasto.id %}" class="text-muted opacity-50" onclick="return confirm('¿Borrar?')">
                                     <i class="bi bi-trash3"></i>
                                 </a>
                             </div>
@@ -92,13 +94,15 @@
             </div>
         </div>
 
-        <div class="main-card shadow-sm border-0 p-4 mb-4">
+        <div class="main-card shadow-sm border-0 p-4 mb-4 bg-white rounded-4">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div class="d-flex align-items-center">
-                    <i class="bi bi-receipt me-2 text-muted fs-4"></i>
+                    <i class="bi bi-receipt me-2 fs-4 text-muted"></i>
                     <h2 class="titulos m-0">Gastos Mensuales</h2>
                 </div>
-                <button class="btn btn-add-section" data-bs-toggle="modal" data-bs-target="#modalGasto" onclick="setGastoTipo('MES')">
+                <button class="btn border-0 shadow-sm text-white" 
+                        style="background-color: var(--active-color); border-radius: 12px; width: 40px; height: 40px;"
+                        data-bs-toggle="modal" data-bs-target="#modalGasto" onclick="setGastoTipo('MES')">
                     <i class="bi bi-plus-lg"></i>
                 </button>
             </div>
@@ -106,10 +110,10 @@
             <div class="row g-2">
                 {% for gasto in gastos_mes %}
                 <div class="col-12">
-                    <div class="card card-sueldo p-3 shadow-sm border-start border-4 
+                    <div class="card p-3 shadow-sm border-0 border-start border-4 rounded-3 
                         {% if gasto.creado_por.username|lower == 'renato' %}border-renato
                         {% elif gasto.creado_por.username|lower == 'belen' %}border-belen
-                        {% else %}border-secondary{% endif %}">
+                        {% else %}border-secondary{% endif %}" style="background-color: #fafbfc;">
                         <div class="d-flex justify-content-between align-items-center">
                             <div class="flex-grow-1">
                                 <p class="m-0 fw-bold text-dark small">{{ gasto.nombre }}</p>
@@ -123,7 +127,7 @@
                                     {% elif gasto.creado_por.username|lower == 'belen' %}text-belen{% endif %}">
                                     ${{ gasto.monto|intcomma }}
                                 </h5>
-                                <a href="{% url 'eliminar_gasto' gasto.id %}" class="btn-action btn-action-delete" onclick="return confirm('¿Eliminar?')">
+                                <a href="{% url 'eliminar_gasto' gasto.id %}" class="text-muted opacity-50" onclick="return confirm('¿Eliminar?')">
                                     <i class="bi bi-trash3"></i>
                                 </a>
                             </div>
@@ -137,7 +141,7 @@
 
             <div class="mt-4 pt-3 border-top d-flex justify-content-between align-items-center">
                 <p class="text-muted m-0 small fw-bold">TOTAL VARIABLES</p>
-                <h4 class="fw-bold m-0 text-dark">${{ total_variables|intcomma }}</h4>
+                <h4 class="fw-bold m-0" style="color: var(--active-color);">${{ total_variables|intcomma }}</h4>
             </div>
         </div>
     </div>
@@ -162,7 +166,8 @@
                         </div>
                     </div>
                     <div class="modal-footer border-0">
-                        <button type="submit" class="btn w-100 py-3 text-white fw-bold" style="background-color: #26a69a; border-radius: 15px;">
+                        <button type="submit" class="btn w-100 py-3 text-white fw-bold shadow-sm" 
+                                style="background-color: var(--active-color); border-radius: 15px; border: none;">
                             Guardar Movimiento
                         </button>
                     </div>
@@ -170,15 +175,4 @@
             </div>
         </div>
     </div>
-{% endblock %}
-
-{% block extra_js %}
-    <script>
-        function setGastoTipo(tipo) {
-            const selectTipo = document.querySelector('select[name="tipo"]');
-            const modalTitle = document.getElementById('modalTitle');
-            if (selectTipo) selectTipo.value = tipo;
-            if (modalTitle) modalTitle.innerText = tipo === 'FIJO' ? 'Nuevo Gasto Fijo' : 'Nuevo Gasto del Mes';
-        }
-    </script>
 {% endblock %}

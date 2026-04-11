@@ -3,8 +3,8 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Sum
 from django.utils import timezone
 from datetime import datetime, timedelta, date
-from .models import Gasto, RegistroSueldo, Perfil
-from .forms import GastoForm
+from .models import Gasto, RegistroSueldo, Perfil, MetaAhorro, MovimientoAhorro
+from .forms import GastoForm, MetaAhorroForm
 
 @login_required
 def index(request):
@@ -38,10 +38,8 @@ def index(request):
 @login_required
 def sueldos(request):
     hogar = request.user.perfil.hogar
-    # Obtenemos todos los perfiles que pertenecen al mismo hogar
     integrantes = Perfil.objects.filter(hogar=hogar)
     
-    # Determinamos qué perfil se va a editar (por defecto el del usuario logueado)
     perfil_id = request.GET.get('perfil_id', request.user.perfil.id)
     perfil_seleccionado = get_object_or_404(Perfil, id=perfil_id, hogar=hogar)
     
@@ -51,7 +49,6 @@ def sueldos(request):
     meses_nombres = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
                      'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
 
-    # Buscamos o creamos el registro para el perfil seleccionado (sea Renato o Belén)
     registro, created = RegistroSueldo.objects.get_or_create(
         perfil=perfil_seleccionado, 
         mes=mes_actual, 
@@ -63,7 +60,6 @@ def sueldos(request):
         registro.sueldo_base = float(request.POST.get('sueldo_base', 0))
         registro.horas_extras = float(request.POST.get('horas_extras', 0))
         registro.save()
-        # Redirigimos manteniendo el perfil y el mes que se estaba editando
         return redirect(f'/sueldos/?perfil_id={perfil_id}&mes={mes_actual}')
 
     context = {
@@ -147,8 +143,6 @@ def editar_gasto(request, pk):
         if form.is_valid():
             form.save()
             return redirect('gastos')
-    # Si quieres una página aparte para editar, podrías retornarla aquí, 
-    # pero por ahora lo manejaremos simple.
     return redirect('gastos')
 
 @login_required
@@ -159,4 +153,57 @@ def eliminar_gasto(request, pk):
 
 @login_required
 def ahorro(request):
-    return render(request, 'platita/ahorros.html')
+    metas = MetaAhorro.objects.filter(hogar=request.user.perfil.hogar)
+    form = MetaAhorroForm()
+
+    if request.method == 'POST':
+        if 'btn_crear' in request.POST:
+            form = MetaAhorroForm(request.POST)
+            if form.is_valid():
+                nueva_meta = form.save(commit=False)
+                nueva_meta.hogar = request.user.perfil.hogar
+                nueva_meta.save()
+                return redirect('ahorro')
+
+        elif 'accion' in request.POST:
+            meta_id = request.POST.get('meta_id')
+            monto = int(request.POST.get('monto', 0))
+            accion = request.POST.get('accion')
+            meta = get_object_or_404(MetaAhorro, id=meta_id)
+
+            if monto > 0:
+                if accion == 'sumar':
+                    meta.monto_actual += monto
+
+                    MovimientoAhorro.objects.create(
+                        meta=meta,
+                        monto=monto,
+                        tipo='sumar'
+                    )
+
+                elif accion == 'restar':
+                    monto_real = min(monto, meta.monto_actual)
+                    meta.monto_actual -= monto_real
+
+                    MovimientoAhorro.objects.create(
+                        meta=meta,
+                        monto=monto_real,
+                        tipo='restar'
+                    )
+
+                meta.save()
+
+            return redirect('ahorro')
+
+    return render(request, 'platita/ahorros.html', {
+        'metas': metas,
+        'form': form,
+        'color': request.user.perfil.color_perfil
+    })
+
+
+@login_required
+def eliminar_meta(request, meta_id):
+    meta = get_object_or_404(MetaAhorro, id=meta_id, hogar=request.user.perfil.hogar)
+    meta.delete()
+    return redirect('ahorro')

@@ -91,6 +91,10 @@
             gap: 8px;
         }
 
+        .hola-pill i {
+            color: var(--active-color, var(--primary-teal)) !important;
+        }
+
         .profile-stack {
             display: flex;
             position: relative;
@@ -118,7 +122,7 @@
         /* Efecto de iluminado para el usuario activo */
         .avatar.active-user {
             transform: scale(1.15);
-            box-shadow: 0 0 0 2px var(--primary-teal);
+            box-shadow: 0 0 0 2px var(--active-color, var(--primary-teal));
             z-index: 3;
         }
 
@@ -154,9 +158,18 @@
         }
 
         .nav-link-custom.active {
-            color: var(--primary-teal);
-            border-bottom: 2px solid var(--primary-teal);
-        }
+                color: var(--active-color, var(--primary-teal)); /* Usa teal por defecto */
+                border-bottom: 2px solid var(--active-color, var(--primary-teal));
+                transition: all 0.3s ease; /* Para que el cambio de color sea suave */
+            }
+
+            .theme-teal {
+                --active-color: #26a69a; /* El color de .avatar-r */
+            }
+
+            .theme-purple {
+                --active-color: #ce93d8; /* El color de .avatar-b */
+            }
 
         .logout-btn {
             background: none;
@@ -182,7 +195,10 @@
 </head>
 <body>
 
-    <nav class="navbar-custom shadow-sm sticky-top">
+    <nav class="navbar-custom shadow-sm sticky-top 
+    {% if user.username|lower == 'renato' %}theme-teal
+    {% elif user.username|lower == 'belen' %}theme-purple
+    {% endif %}">
         <div class="container">
             <div class="nav-top-row">
                 <div class="logo-wrapper">
@@ -236,11 +252,8 @@
                 <a href="{% url 'gastos' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'gastos' %}active{% endif %}">
                     <i class="bi bi-cash-stack"></i> Gastos
                 </a>
-                <a href="#" class="nav-link-custom">
-                    <i class="bi bi-calendar-check"></i> Planificación
-                </a>
-                <a href="#" class="nav-link-custom">
-                    <i class="bi bi-bullseye"></i> Ahorros
+                <a href="{% url 'ahorro' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'ahorro' %}active{% endif %}">
+                    <i class="bi bi-calendar-check"></i> Ahorros
                 </a>
             </div>
         </div>

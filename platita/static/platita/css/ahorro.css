@@ -1,0 +1,161 @@
+:root {
+    --pink-light: #fff6f8;
+    --pink-soft: #ffe3ea;
+    --pink-border: #f8bfc9;
+
+    --accent-main: #f48fb1;       /* rosado principal */
+    --accent-soft: #f8bbd0;       /* rosado claro */
+    --accent-strong: #ec407a;     /* rosado más intenso */
+
+    --danger-soft: #ff9aa2;
+
+    --text-main: #2d3748;
+    --text-soft: #8e9aaf;
+
+    --glass-bg: rgba(255, 255, 255, 0.65);
+}
+
+/* Card */
+.main-card {
+    background: linear-gradient(145deg, var(--pink-light), var(--pink-soft));
+    border: 1px solid var(--pink-border) !important;
+    border-radius: 22px;
+    padding: 16px !important;
+    box-shadow: 0 6px 18px rgba(248, 191, 201, 0.18);
+    transition: all 0.2s ease;
+}
+
+.main-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 22px rgba(248, 191, 201, 0.25);
+}
+
+/* Título */
+.titulo {
+    font-family: 'Monaco', monospace;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-soft);
+}
+
+/* Porcentaje */
+.porcentaje {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--accent-strong);
+}
+
+/* Barra */
+.custom-progress {
+    height: 12px;
+    border-radius: 10px;
+    background: #f4dce2;
+    overflow: hidden;
+    position: relative;
+}
+
+.custom-progress .progress-bar {
+    border-radius: 10px;
+    background: linear-gradient(90deg, var(--accent-main), var(--accent-strong));
+    transition: width 0.4s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Texto dentro de la barra */
+.progress-text {
+    font-size: 10px;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+/* Montos */
+.montos-mini {
+    font-size: 13px;
+    font-weight: 600;
+    color: #5a677d;
+}
+
+/* Botón agregar */
+.btn-add-meta {
+    background: white;
+    border: 2px dashed var(--pink-border);
+    border-radius: 18px;
+    color: var(--accent-main);
+    transition: all 0.3s ease;
+    width: 100%;
+    padding: 14px;
+    font-family: 'Monaco', monospace;
+}
+
+.btn-add-meta:hover {
+    border-style: solid;
+    color: var(--accent-strong);
+    background: #fff0f5;
+}
+
+/* Gestión */
+.gestion-container {
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    padding: 8px !important;
+}
+
+/* Botones */
+.btn-accion-apple {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.1rem;
+    transition: all 0.15s ease;
+    z-index: 2;
+    position: relative;
+}
+
+.btn-sumar { 
+    background: var(--accent-main); 
+    box-shadow: 0 6px 12px rgba(244, 143, 177, 0.35); 
+}
+
+.btn-restar { 
+    background: var(--danger-soft); 
+    box-shadow: 0 6px 12px rgba(255, 154, 162, 0.25); 
+}
+
+.btn-accion-apple:active {
+    transform: scale(0.9);
+}
+
+/* Input */
+.input-inline {
+    width: 80px;
+    border: none;
+    background: transparent;
+    text-align: center;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.input-inline:focus {
+    outline: none;
+    width: 150px;
+}
+
+/* Historial */
+.historial-item {
+    background: #fff;
+    border-radius: 12px;
+    padding: 10px 12px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.04);
+}

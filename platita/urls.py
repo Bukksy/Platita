@@ -11,5 +11,6 @@ urlpatterns = [
     path('gastos/crear/', views.crear_gasto, name='crear_gasto'),
     path('gastos/editar/<int:pk>/', views.editar_gasto, name='editar_gasto'),
     path('gastos/eliminar/<int:pk>/', views.eliminar_gasto, name='eliminar_gasto'),
-    path('ahorro/', views.ahorro, name="ahorro")
+    path('ahorro/', views.ahorro, name="ahorro"),
+    path('ahorro/eliminar/<int:meta_id>/', views.eliminar_meta, name='eliminar_meta'),
 ]

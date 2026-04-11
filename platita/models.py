@@ -76,8 +76,12 @@ class MetaAhorro(models.Model):
             return min(int(p), 100) 
         return 0
 
+    @property
+    def faltante(self):
+        return max(0, self.monto_objetivo - self.monto_actual)
+
     def __str__(self):
-        return f"{self.nombre} ({self.hogar.nombre})"
+        return f"{self.nombre}"
     
 # 5. Registro de sueldo mensual (Lo que se ve en el Dashboard)
 class RegistroSueldo(models.Model):
@@ -96,3 +100,13 @@ class RegistroSueldo(models.Model):
 
     def __str__(self):
         return f"Sueldo {self.perfil.usuario.username} - {self.mes}/{self.anio}"
+    
+# 6. Historial
+class MovimientoAhorro(models.Model):
+    meta = models.ForeignKey(MetaAhorro, on_delete=models.CASCADE, related_name='movimientos')
+    monto = models.IntegerField()
+    tipo = models.CharField(max_length=10)
+    fecha = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.tipo} - {self.monto}"
