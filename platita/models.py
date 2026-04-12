@@ -32,13 +32,12 @@ class Gasto(models.Model):
         ('ENTRETENCION', '🎮 Entretenimiento'),
         ('SERVICIOS', '💡 Servicios/Luz/Agua'),
         ('ESTUDIOS', '📚 Estudios/PC'), 
-        ('HOGAR', '🏠 Hogar/Muebles'),  # <--- CATEGORÍA AGREGADA
+        ('HOGAR', '🏠 Hogar/Muebles'),
         ('OTROS', '✨ Otros'),
     ]
     TIPO_GASTO = [
         ('MES', 'Gasto del Mes'),
         ('FIJO', 'Gasto Fijo Mensual'),
-        ('FUTURO', 'Gasto Próximo/Planificado'),
     ]
     
     hogar = models.ForeignKey(Hogar, on_delete=models.CASCADE, related_name='gastos')
@@ -61,29 +60,8 @@ class Gasto(models.Model):
     def __str__(self):
         return f"{self.nombre} (${self.monto}) - {self.hogar.nombre}"
 
-# 4. Tabla de Ahorro
-class MetaAhorro(models.Model):
-    hogar = models.ForeignKey(Hogar, on_delete=models.CASCADE, related_name='metas', null=True, blank=True)
-    nombre = models.CharField(max_length=100)
-    monto_objetivo = models.IntegerField()
-    monto_actual = models.IntegerField(default=0)
-    icono = models.CharField(max_length=50, default="bi-piggy-bank")
     
-    @property
-    def porcentaje(self):
-        if self.monto_objetivo > 0:
-            p = (self.monto_actual / self.monto_objetivo) * 100
-            return min(int(p), 100) 
-        return 0
-
-    @property
-    def faltante(self):
-        return max(0, self.monto_objetivo - self.monto_actual)
-
-    def __str__(self):
-        return f"{self.nombre}"
-    
-# 5. Registro de sueldo mensual (Lo que se ve en el Dashboard)
+# 4. Sueldoo
 class RegistroSueldo(models.Model):
     perfil = models.ForeignKey(Perfil, on_delete=models.CASCADE, related_name='registros_sueldos')
     mes = models.PositiveSmallIntegerField()
@@ -101,12 +79,53 @@ class RegistroSueldo(models.Model):
     def __str__(self):
         return f"Sueldo {self.perfil.usuario.username} - {self.mes}/{self.anio}"
     
-# 6. Historial
-class MovimientoAhorro(models.Model):
-    meta = models.ForeignKey(MetaAhorro, on_delete=models.CASCADE, related_name='movimientos')
-    monto = models.IntegerField()
-    tipo = models.CharField(max_length=10)
-    fecha = models.DateTimeField(auto_now_add=True)
+# Tabla para configurar los montos de las tarjetas cada mes
+class CargaMensual(models.Model):
+    hogar = models.ForeignKey(Hogar, on_delete=models.CASCADE, related_name='cargas_mensuales')
+    mes = models.PositiveSmallIntegerField()
+    anio = models.PositiveIntegerField()
+    
+    # Montos editables (ponemos los valores estándar como default)
+    monto_amipass = models.IntegerField(default=80000)
+    monto_junaeb_renato = models.IntegerField(default=48000)
+    monto_junaeb_belen = models.IntegerField(default=48000)
+
+    class Meta:
+        # Esto evita que tengas dos configuraciones para el mismo mes/hogar
+        unique_together = ('hogar', 'mes', 'anio')
+        verbose_name = "Carga Mensual"
+        verbose_name_plural = "Cargas Mensuales"
 
     def __str__(self):
-        return f"{self.tipo} - {self.monto}"
+        return f"Carga {self.mes}/{self.anio} - {self.hogar.nombre}"
+
+
+# Tu tabla de Compras de Alimentación (Movimientos)
+class CompraAlimentacion(models.Model):
+    TARJETAS = [
+        ('AMIPASS', '💳 Amipass'),
+        ('JUNAEB_R', '🟢 Junaeb Renato'),
+        ('JUNAEB_B', '🟣 Junaeb Belén'),
+    ]
+
+    hogar = models.ForeignKey(Hogar, on_delete=models.CASCADE, related_name='compras_alimentacion')
+    creado_por = models.ForeignKey(User, on_delete=models.CASCADE)
+    
+    nombre = models.CharField(max_length=100)
+    cantidad = models.PositiveIntegerField(default=1)
+    precio_unitario = models.IntegerField(default=0)
+    monto = models.IntegerField(editable=False) # Se calcula solo
+    tarjeta = models.CharField(max_length=20, choices=TARJETAS)
+    fecha = models.DateField()
+
+    def save(self, *args, **kwargs):
+        self.monto = self.cantidad * self.precio_unitario
+        super().save(*args, **kwargs)
+
+    class Meta:
+        verbose_name = "Compra Alimentación"
+        verbose_name_plural = "Compras Alimentación"
+        ordering = ['-fecha']
+
+    def __str__(self):
+        return f"{self.nombre} (${self.monto}) - {self.tarjeta}"

@@ -206,7 +206,7 @@
                         <i class="bi bi-piggy-bank"></i>
                     </div>
                     <div>
-                        <p class="brand-text-main">Platita</p>
+                        <p class="brand-text-main">Chauchita</p>
                         <p class="brand-sub" id="current-date"></p>
                     </div>
                 </div>
@@ -252,8 +252,8 @@
                 <a href="{% url 'gastos' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'gastos' %}active{% endif %}">
                     <i class="bi bi-cash-stack"></i> Gastos
                 </a>
-                <a href="{% url 'ahorro' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'ahorro' %}active{% endif %}">
-                    <i class="bi bi-calendar-check"></i> Ahorros
+                <a href="{% url 'alimentacion' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'alimentacion' %}active{% endif %}" class="nav-link-custom">
+                    <i class="bi bi-basket"></i> Alimentacion
                 </a>
             </div>
         </div>

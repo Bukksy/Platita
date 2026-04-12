@@ -1,5 +1,5 @@
 from django import forms
-from .models import Gasto, MetaAhorro
+from .models import Gasto, CompraAlimentacion, CargaMensual
 
 class GastoForm(forms.ModelForm):
     class Meta:
@@ -14,12 +14,24 @@ class GastoForm(forms.ModelForm):
             'comentario': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Opcional...'}),
         }
 
-class MetaAhorroForm(forms.ModelForm):
+class GastoAlimentacionForm(forms.ModelForm):
     class Meta:
-        model = MetaAhorro
-        fields = ['nombre', 'monto_objetivo', 'icono']
+        model = CompraAlimentacion
+        fields = ['nombre', 'cantidad', 'precio_unitario', 'tarjeta', 'fecha']
         widgets = {
-            'nombre': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej: Notebook Pro'}),
-            'monto_objetivo': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Monto total'}),
-            'icono': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'bi-laptop'}),
+            'nombre': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej: Arroz'}),
+            'cantidad': forms.NumberInput(attrs={'class': 'form-control', 'id': 'id_cantidad'}),
+            'precio_unitario': forms.NumberInput(attrs={'class': 'form-control', 'id': 'id_precio_u'}),
+            'tarjeta': forms.Select(attrs={'class': 'form-select'}),
+            'fecha': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+        }
+
+class CargaMensualForm(forms.ModelForm):
+    class Meta:
+        model = CargaMensual
+        fields = ['monto_amipass', 'monto_junaeb_renato', 'monto_junaeb_belen']
+        widgets = {
+            'monto_amipass': forms.NumberInput(attrs={'class': 'form-control'}),
+            'monto_junaeb_renato': forms.NumberInput(attrs={'class': 'form-control'}),
+            'monto_junaeb_belen': forms.NumberInput(attrs={'class': 'form-control'}),
         }

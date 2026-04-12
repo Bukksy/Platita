@@ -3,8 +3,8 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Sum
 from django.utils import timezone
 from datetime import datetime, timedelta, date
-from .models import Gasto, RegistroSueldo, Perfil, MetaAhorro, MovimientoAhorro
-from .forms import GastoForm, MetaAhorroForm
+from .models import Gasto, RegistroSueldo, Perfil, CompraAlimentacion,CargaMensual
+from .forms import GastoForm, GastoAlimentacionForm
 
 @login_required
 def index(request):
@@ -152,58 +152,72 @@ def eliminar_gasto(request, pk):
     return redirect('gastos')
 
 @login_required
-def ahorro(request):
-    metas = MetaAhorro.objects.filter(hogar=request.user.perfil.hogar)
-    form = MetaAhorroForm()
+def alimentacion(request):
+    mes_sel = int(request.GET.get('mes', datetime.now().month))
+    anio_sel = int(request.GET.get('anio', datetime.now().year))
 
-    if request.method == 'POST':
-        if 'btn_crear' in request.POST:
-            form = MetaAhorroForm(request.POST)
-            if form.is_valid():
-                nueva_meta = form.save(commit=False)
-                nueva_meta.hogar = request.user.perfil.hogar
-                nueva_meta.save()
-                return redirect('ahorro')
+    carga, created = CargaMensual.objects.get_or_create(
+        hogar=request.user.perfil.hogar,
+        mes=mes_sel,
+        anio=anio_sel
+    )
 
-        elif 'accion' in request.POST:
-            meta_id = request.POST.get('meta_id')
-            monto = int(request.POST.get('monto', 0))
-            accion = request.POST.get('accion')
-            meta = get_object_or_404(MetaAhorro, id=meta_id)
+    if request.method == 'POST' and 'actualizar_amipass' in request.POST:
+        nuevo_monto = request.POST.get('monto_amipass')
+        if nuevo_monto:
+            carga.monto_amipass = nuevo_monto
+            carga.save()
+        return redirect(f'/alimentacion/?mes={mes_sel}&anio={anio_sel}')
 
-            if monto > 0:
-                if accion == 'sumar':
-                    meta.monto_actual += monto
+    compras = CompraAlimentacion.objects.filter(
+        hogar=request.user.perfil.hogar,
+        fecha__month=mes_sel,
+        fecha__year=anio_sel
+    )
 
-                    MovimientoAhorro.objects.create(
-                        meta=meta,
-                        monto=monto,
-                        tipo='sumar'
-                    )
+    gastado_amipass = compras.filter(tarjeta='AMIPASS').aggregate(Sum('monto'))['monto__sum'] or 0
+    gastado_jr = compras.filter(tarjeta='JUNAEB_R').aggregate(Sum('monto'))['monto__sum'] or 0
+    gastado_jb = compras.filter(tarjeta='JUNAEB_B').aggregate(Sum('monto'))['monto__sum'] or 0
 
-                elif accion == 'restar':
-                    monto_real = min(monto, meta.monto_actual)
-                    meta.monto_actual -= monto_real
+    ingreso_amipass = carga.monto_amipass
+    ingreso_jr = carga.monto_junaeb_renato
+    ingreso_jb = carga.monto_junaeb_belen
 
-                    MovimientoAhorro.objects.create(
-                        meta=meta,
-                        monto=monto_real,
-                        tipo='restar'
-                    )
-
-                meta.save()
-
-            return redirect('ahorro')
-
-    return render(request, 'platita/ahorros.html', {
-        'metas': metas,
-        'form': form,
-        'color': request.user.perfil.color_perfil
-    })
-
+    total_ingreso = ingreso_amipass + ingreso_jr + ingreso_jb
+    total_gastado = gastado_amipass + gastado_jr + gastado_jb
+    
+    context = {
+        'compras_mes': compras,
+        'amipass_ingreso': ingreso_amipass,
+        'saldo_amipass': ingreso_amipass - gastado_amipass,
+        'saldo_jr': ingreso_jr - gastado_jr,
+        'saldo_jb': ingreso_jb - gastado_jb,
+        'saldo_restante': total_ingreso - total_gastado,
+        'total_gastado': total_gastado, 
+        'porcentaje': (total_gastado / total_ingreso * 100) if total_ingreso > 0 else 0,
+        'mes_sel': mes_sel,
+        'anio_sel': anio_sel,
+        'form': GastoAlimentacionForm(), #
+    }
+    return render(request, 'platita/alimentacion.html', context)
 
 @login_required
-def eliminar_meta(request, meta_id):
-    meta = get_object_or_404(MetaAhorro, id=meta_id, hogar=request.user.perfil.hogar)
-    meta.delete()
-    return redirect('ahorro')
+def crear_compra_alimentacion(request):
+    if request.method == 'POST':
+        form = GastoAlimentacionForm(request.POST)
+        if form.is_valid():
+            compra = form.save(commit=False)
+            compra.creado_por = request.user
+            compra.hogar = request.user.perfil.hogar 
+            compra.save()
+            
+            return redirect(f'/alimentacion/?mes={compra.fecha.month}&anio={compra.fecha.year}')
+    return redirect('alimentacion')
+
+@login_required
+def eliminar_compra_alimentacion(request, pk):
+    compra = get_object_or_404(CompraAlimentacion, id=pk, hogar=request.user.perfil.hogar)
+    mes = compra.fecha.month
+    anio = compra.fecha.year
+    compra.delete()
+    return redirect(f'/alimentacion/?mes={mes}&anio={anio}')

@@ -1,0 +1,223 @@
+{% extends 'platita/base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'platita/css/gastos.css' %}">
+{% endblock %}
+
+{% block content %}
+    <div class="container p-0 mb-5 {% if user.username|lower == 'renato' %}theme-teal{% else %}theme-purple{% endif %}">
+        
+        <div class="mes-selector-container">
+            {% for m in meses_opciones %}
+            <a href="?mes={{ m.n }}&anio={{ m.a|stringformat:"d" }}" 
+            class="btn-mes {% if m.n == mes_sel %}active{% endif %}"
+            style="{% if m.n == mes_sel %}background-color: var(--active-color); color: white;{% endif %}">
+                {{ m.nombre }}
+                <span class="anio-label">{{ m.a|stringformat:"d" }}</span>
+            </a>
+            {% endfor %}
+        </div>
+
+        <div class="main-card shadow-sm border-0 p-4 mb-4 bg-white rounded-4">
+            <div class="d-flex align-items-center mb-4">
+                <i class="bi bi-basket me-2 fs-4" style="color: var(--active-color);"></i>
+                <h2 class="titulos m-0">Alimentación {{ mes_nombre }}</h2>
+            </div>
+
+            <div class="row g-2 mb-3">
+                <div class="col-4 text-center">
+                    <p class="text-muted mb-1" style="font-size: 0.65rem; text-transform: uppercase; font-weight: 800;">
+                        Amipass 
+                        <a href="#" data-bs-toggle="modal" data-bs-target="#modalAmipass" class="text-decoration-none ms-1" style="color: var(--active-color);">
+                            <i class="bi bi-pencil-square"></i>
+                        </a>
+                    </p>
+                    <h6 class="fw-bold text-dark m-0">${{ saldo_amipass|floatformat:"0"|intcomma }}</h6>
+                </div>
+                <div class="col-4 text-center border-start border-end">
+                    <p class="text-muted mb-1" style="font-size: 0.65rem; text-transform: uppercase; font-weight: 800;">Junaeb R</p>
+                    <h6 class="fw-bold text-dark m-0">${{ saldo_jr|floatformat:"0"|intcomma }}</h6>
+                </div>
+                <div class="col-4 text-center">
+                    <p class="text-muted mb-1" style="font-size: 0.65rem; text-transform: uppercase; font-weight: 800;">Junaeb B</p>
+                    <h6 class="fw-bold text-dark m-0">${{ saldo_jb|floatformat:"0"|intcomma }}</h6>
+                </div>
+            </div>
+
+            <div class="text-center mt-3 pt-3 border-top" style="border-top: 1px dashed var(--active-color) !important;">
+                <p class="text-muted mb-1 small text-uppercase fw-bold">Saldo Total Restante</p>
+                <h3 class="fw-bold m-0" style="color: {% if saldo_restante < 0 %}#f28b82{% else %}var(--active-color){% endif %};">
+                    ${{ saldo_restante|floatformat:"0"|intcomma }}
+                </h3>
+            </div>
+
+            <div class="mt-4">
+                <div class="progress" style="height: 12px; background-color: var(--soft-active) !important; border-radius: 10px; overflow: hidden;">
+                    <div class="progress-bar" 
+                         role="progressbar" 
+                         style="width: {{ porcentaje|stringformat:".2f" }}% !important; background-color: {% if porcentaje > 90 %}#f28b82{% else %}var(--active-color){% endif %} !important;" 
+                         aria-valuenow="{{ porcentaje|stringformat:".2f" }}" 
+                         aria-valuemin="0" 
+                         aria-valuemax="100">
+                    </div>
+                </div>
+                <div class="d-flex justify-content-between mt-2">
+                    <small class="text-muted">Consumido: <strong>${{ total_gastado|floatformat:"0"|intcomma }}</strong></small>
+                    <small class="text-muted fw-bold" style="color: var(--active-color);">{{ porcentaje|stringformat:".0f" }}% de las tarjetas</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-card shadow-sm border-0 p-4 mb-4 bg-white rounded-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-cart-check me-2 fs-4" style="color: var(--active-color);"></i>
+                    <h2 class="titulos m-0">Detalle Compras</h2>
+                </div>
+                <button class="btn border-0 shadow-sm text-white" 
+                        style="background-color: var(--active-color); border-radius: 12px; width: 40px; height: 40px;"
+                        data-bs-toggle="modal" data-bs-target="#modalCompra">
+                    <i class="bi bi-plus-lg"></i>
+                </button>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-borderless align-middle">
+                    <thead class="text-muted small text-uppercase" style="font-size: 0.65rem; letter-spacing: 0.5px;">
+                        <tr>
+                            <th>Producto</th>
+                            <th class="text-center">Cant.</th>
+                            <th class="text-end">Total</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for compra in compras_mes %}
+                        <tr style="border-bottom: 1px solid #f8f9fa;">
+                            <td>
+                                <div class="fw-bold text-dark" style="font-size: 0.85rem;">{{ compra.nombre }}</div>
+                                <small class="text-muted" style="font-size: 0.7rem;">
+                                    {{ compra.fecha|date:"d M" }} • {{ compra.get_tarjeta_display }}
+                                </small>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge rounded-pill bg-light text-dark border fw-normal">{{ compra.cantidad }}</span>
+                            </td>
+                            <td class="text-end">
+                                <span class="fw-bold {% if compra.creado_por.username|lower == 'renato' %}text-renato{% else %}text-belen{% endif %}" style="font-size: 0.9rem;">
+                                    ${{ compra.monto|intcomma }}
+                                </span>
+                            </td>
+                            <td class="text-end">
+                                <a href="{% url 'eliminar_compra' compra.id %}" class="text-muted opacity-50" onclick="return confirm('¿Eliminar item?')">
+                                    <i class="bi bi-trash3" style="font-size: 0.8rem;"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center py-4 text-muted small">No hay compras registradas.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalCompra" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 20px; border: none;">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold">Nueva Compra</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form method="POST" action="{% url 'crear_compra_alimentacion' %}">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label class="form-label small fw-bold text-muted mb-1">Producto</label>
+                                {{ form.nombre }}
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small fw-bold text-muted mb-1">Cantidad</label>
+                                {{ form.cantidad }}
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small fw-bold text-muted mb-1">Precio Unitario</label>
+                                {{ form.precio_unitario }}
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small fw-bold text-muted mb-1">Tarjeta</label>
+                                {{ form.tarjeta }}
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small fw-bold text-muted mb-1">Fecha</label>
+                                {{ form.fecha }}
+                            </div>
+                            <div class="col-12">
+                                <div class="p-2 rounded-3 text-center mb-2" style="background-color: var(--soft-active);">
+                                    <small class="text-muted d-block">Total Calculado</small>
+                                    <span class="fw-bold fs-5" id="display_total" style="color: var(--active-color);">$0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0">
+                        <button type="submit" class="btn w-100 py-3 text-white fw-bold shadow-sm" 
+                                style="background-color: #26a69a; border-radius: 15px; border: none;">
+                            Guardar Compra
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalAmipass" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content" style="border-radius: 20px; border: none;">
+                <div class="modal-header border-0 pb-0">
+                    <h6 class="modal-title fw-bold">Carga Amipass</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <input type="number" name="monto_amipass" class="form-control text-center fw-bold fs-5" 
+                               value="{{ amipass_ingreso }}" style="border-radius: 12px; border: 2px solid #26a69a;">
+                    </div>
+                    <div class="modal-footer border-0">
+                        <button type="submit" name="actualizar_amipass" class="btn w-100 py-2 text-white fw-bold shadow-sm" 
+                                style="background-color:#26a69a;; border-radius: 12px; border: none;">
+                            Actualizar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const inputCant = document.querySelector('#id_cantidad');
+            const inputPrecio = document.querySelector('#id_precio_u') || document.querySelector('[name="precio_unitario"]');
+            const displayTotal = document.getElementById('display_total');
+
+            function updateCalc() {
+                const c = parseFloat(inputCant.value) || 0;
+                const p = parseFloat(inputPrecio.value) || 0;
+                const total = c * p;
+                displayTotal.innerText = '$' + total.toLocaleString('es-CL');
+            }
+
+            if(inputCant && inputPrecio) {
+                inputCant.addEventListener('input', updateCalc);
+                inputPrecio.addEventListener('input', updateCalc);
+            }
+        });
+    </script>
+{% endblock %}
