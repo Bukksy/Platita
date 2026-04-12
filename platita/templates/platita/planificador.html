@@ -1,0 +1,173 @@
+{% extends 'platita/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --renato-color: #26a69a;
+        --renato-bg: #e0f2f1;
+        --belen-color: #ab47bc;
+        --belen-bg: #f3e5f5;
+    }
+
+    /* Diseño vertical para móvil */
+    .plan-container {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        padding-bottom: 5rem;
+    }
+
+    .dia-card {
+        width: 100%;
+        border-radius: 20px;
+        background: white;
+    }
+
+    .tarea-card {
+        border: none;
+        border-radius: 15px;
+        transition: all 0.2s ease;
+        border-left: 5px solid transparent;
+        margin-bottom: 0.75rem;
+    }
+
+    /* Colores por usuario */
+    .user-renato { background-color: var(--renato-bg); border-left-color: var(--renato-color); color: #00695c; }
+    .user-belen { background-color: var(--belen-bg); border-left-color: var(--belen-color); color: #6a1b9a; }
+
+    .tarea-check { width: 1.4rem; height: 1.4rem; cursor: pointer; border: 2px solid var(--active-color); }
+    .tarea-completada { opacity: 0.5; text-decoration: line-through; filter: grayscale(0.5); }
+
+    .btn-sortear {
+        background: linear-gradient(135deg, #26a69a, #2bbbad);
+        border: none;
+        border-radius: 12px;
+        font-weight: 700;
+        padding: 0.6rem 1.2rem;
+    }
+
+    .btn-outline-dashed {
+        border: 2px dashed #dee2e6;
+        background: transparent;
+        color: #adb5bd;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container p-3 {% if user.username|lower == 'renato' %}theme-teal{% else %}theme-purple{% endif %}">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="titulos m-0">Plan Semanal</h2>
+            <p class="text-muted small mb-0">Semana del {{ hoy|date:"d M" }}</p>
+        </div>
+        <form method="POST" action="{% url 'sortear_semana' %}">
+            {% csrf_token %}
+            {% if not ya_sorteado %}
+                <button type="submit" class="btn btn-sortear text-white shadow-sm">
+                    <i class="bi bi-shuffle me-1"></i> Sortear Semana
+                </button>
+            {% else %}
+                <button type="button" class="btn btn-secondary shadow-sm" disabled style="border-radius: 12px; opacity: 0.7;">
+                    <i class="bi bi-lock-fill me-1"></i> Semana Cerrada
+                </button>
+            {% endif %}
+        </form>
+    </div>
+
+    <div class="plan-container">
+        {% for dia in plan_por_dia %}
+        <div class="dia-card main-card shadow-sm p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold m-0" style="color: var(--active-color);">{{ dia.nombre }}</h5>
+                <span class="badge rounded-pill bg-light text-dark border">{{ dia.tareas|length }}</span>
+            </div>
+
+            <div class="tareas-list">
+                {% for tarea in dia.tareas %}
+                <div id="tarea-{{ tarea.id }}" class="tarea-card p-3 d-flex align-items-center 
+                            {% if tarea.responsable.username|lower == 'renato' %}user-renato{% else %}user-belen{% endif %} 
+                            {% if tarea.completada %}tarea-completada{% endif %}">
+                    
+                    <div class="flex-grow-1">
+                        <div class="fw-bold" style="font-size: 0.95rem;">
+                            {% if tarea.tarea %}{{ tarea.tarea.nombre }}{% else %}{{ tarea.nombre_manual }}{% endif %}
+                        </div>
+                        <div class="small opacity-75">
+                             {{ tarea.responsable.username|title }}
+                        </div>
+                    </div>
+
+                    <div class="form-check ms-2">
+                        <input class="form-check-input tarea-check" type="checkbox" 
+                               {% if tarea.completada %}checked{% endif %}
+                               onchange="toggleTareaBD('{{ tarea.id }}')">
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-center text-muted small py-3 my-0 opacity-50">Sin tareas asignadas</p>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="modal fade" id="modalExtra" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered mx-3">
+        <div class="modal-content border-0 shadow" style="border-radius: 25px;">
+            <form method="POST" action="{% url 'agregar_tarea_extra' %}">
+                {% csrf_token %}
+                <div class="modal-body p-4">
+                    <h5 class="fw-bold mb-4" id="modalTitulo text-center">Nueva tarea</h5>
+                    <input type="hidden" name="dia" id="inputDia">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">¿Qué toca hacer?</label>
+                        <input type="text" name="descripcion" class="form-control form-control-lg rounded-4 border-light bg-light" placeholder="Ej: Limpiar vidrios" required>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-muted">Responsable</label>
+                        <select name="responsable" class="form-select form-select-lg rounded-4 border-light bg-light">
+                            <option value="renato">Renato</option>
+                            <option value="belen">Belén</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-lg w-100 py-3 text-white fw-bold shadow" style="background-color: var(--active-color); border-radius: 18px;">
+                        Confirmar Tarea
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    async function toggleTareaBD(tareaId) {
+        const card = document.getElementById(`tarea-${tareaId}`);
+        try {
+            const response = await fetch(`/planificador/completar/${tareaId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                }
+            });
+            if (response.ok) {
+                const data = await response.json();
+                card.classList.toggle('tarea-completada', data.completada);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+
+    const modalExtra = document.getElementById('modalExtra');
+    modalExtra.addEventListener('show.bs.modal', function (event) {
+        const button = event.relatedTarget;
+        document.getElementById('modalTitulo').textContent = button.getAttribute('data-dia-nom');
+        document.getElementById('inputDia').value = button.getAttribute('data-dia-cod');
+    });
+</script>
+{% endblock %}

@@ -4,22 +4,23 @@
 
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'platita/css/gastos.css' %}">
+    <style>
+        /* Estilo para tachar la fila */
+        .comprado-tacho {
+            text-decoration: line-through;
+            opacity: 0.5;
+            transition: all 0.3s ease;
+        }
+        /* Personalizar el checkbox con el color del tema */
+        .form-check-input:checked {
+            background-color: var(--active-color);
+            border-color: var(--active-color);
+        }
+    </style>
 {% endblock %}
 
 {% block content %}
     <div class="container p-0 mb-5 {% if user.username|lower == 'renato' %}theme-teal{% else %}theme-purple{% endif %}">
-        
-        <div class="mes-selector-container">
-            {% for m in meses_opciones %}
-            <a href="?mes={{ m.n }}&anio={{ m.a|stringformat:"d" }}" 
-            class="btn-mes {% if m.n == mes_sel %}active{% endif %}"
-            style="{% if m.n == mes_sel %}background-color: var(--active-color); color: white;{% endif %}">
-                {{ m.nombre }}
-                <span class="anio-label">{{ m.a|stringformat:"d" }}</span>
-            </a>
-            {% endfor %}
-        </div>
-
         <div class="main-card shadow-sm border-0 p-4 mb-4 bg-white rounded-4">
             <div class="d-flex align-items-center mb-4">
                 <i class="bi bi-basket me-2 fs-4" style="color: var(--active-color);"></i>
@@ -87,7 +88,7 @@
                 <table class="table table-borderless align-middle">
                     <thead class="text-muted small text-uppercase" style="font-size: 0.65rem; letter-spacing: 0.5px;">
                         <tr>
-                            <th>Producto</th>
+                            <th style="width: 30px;"></th> <th>Producto</th>
                             <th class="text-center">Cant.</th>
                             <th class="text-end">Total</th>
                             <th></th>
@@ -97,7 +98,12 @@
                         {% for compra in compras_mes %}
                         <tr style="border-bottom: 1px solid #f8f9fa;">
                             <td>
-                                <div class="fw-bold text-dark" style="font-size: 0.85rem;">{{ compra.nombre }}</div>
+                                <input class="form-check-input item-check" type="checkbox" 
+                                       style="cursor: pointer;"
+                                       onclick="toggleRow(this)">
+                            </td>
+                            <td class="product-info">
+                                <div class="fw-bold text-dark name-text" style="font-size: 0.85rem;">{{ compra.nombre }}</div>
                                 <small class="text-muted" style="font-size: 0.7rem;">
                                     {{ compra.fecha|date:"d M" }} • {{ compra.get_tarjeta_display }}
                                 </small>
@@ -105,7 +111,7 @@
                             <td class="text-center">
                                 <span class="badge rounded-pill bg-light text-dark border fw-normal">{{ compra.cantidad }}</span>
                             </td>
-                            <td class="text-end">
+                            <td class="text-end price-text">
                                 <span class="fw-bold {% if compra.creado_por.username|lower == 'renato' %}text-renato{% else %}text-belen{% endif %}" style="font-size: 0.9rem;">
                                     ${{ compra.monto|intcomma }}
                                 </span>
@@ -118,7 +124,7 @@
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="4" class="text-center py-4 text-muted small">No hay compras registradas.</td>
+                            <td colspan="5" class="text-center py-4 text-muted small">No hay compras registradas.</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -202,6 +208,21 @@
     </div>
 
     <script>
+        // Función para tachar la fila visualmente
+        function toggleRow(checkbox) {
+            const row = checkbox.closest('tr');
+            const nameText = row.querySelector('.product-info');
+            const priceText = row.querySelector('.price-text');
+            
+            if (checkbox.checked) {
+                nameText.classList.add('comprado-tacho');
+                priceText.classList.add('comprado-tacho');
+            } else {
+                nameText.classList.remove('comprado-tacho');
+                priceText.classList.remove('comprado-tacho');
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             const inputCant = document.querySelector('#id_cantidad');
             const inputPrecio = document.querySelector('#id_precio_u') || document.querySelector('[name="precio_unitario"]');

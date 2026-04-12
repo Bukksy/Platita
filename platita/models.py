@@ -129,3 +129,26 @@ class CompraAlimentacion(models.Model):
 
     def __str__(self):
         return f"{self.nombre} (${self.monto}) - {self.tarjeta}"
+    
+DIAS_CHOICES = [
+    ('LU', 'Lunes'),
+    ('MA', 'Martes'),
+    ('MI', 'Miércoles'),
+    ('JU', 'Jueves'),
+    ('VI', 'Viernes'),
+    ('SA', 'Sábado'),
+    ('DO', 'Domingo'),
+]
+    
+class TareaMaestra(models.Model):
+    nombre = models.CharField(max_length=100)
+    frecuencia_semanal = models.IntegerField() 
+    es_diaria = models.BooleanField(default=False)
+
+class TareaAsignada(models.Model):
+    tarea = models.ForeignKey(TareaMaestra, on_delete=models.CASCADE, null=True)
+    nombre_manual = models.CharField(max_length=100, null=True, blank=True)
+    dia = models.CharField(max_length=2, choices=DIAS_CHOICES)
+    responsable = models.ForeignKey(User, on_delete=models.CASCADE)
+    completada = models.BooleanField(default=False)
+    fecha_semana = models.DateField()

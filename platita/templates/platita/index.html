@@ -5,11 +5,32 @@
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'platita/css/index.css' %}">
     <style>
-        .border-renato { border-left: 5px solid #26a69a !important; }
-        .border-belen { border-left: 5px solid #ce93d8 !important; }
-        .text-renato { color: #26a69a !important; }
-        .text-belen { color: #ce93d8 !important; }
+        :root {
+            --renato-color: #26a69a;
+            --renato-bg: #e0f2f1;
+            --belen-color: #ab47bc;
+            --belen-bg: #f3e5f5;
+        }
+
+        .border-renato { border-left: 5px solid var(--renato-color) !important; }
+        .border-belen { border-left: 5px solid var(--belen-color) !important; }
+        .text-renato { color: var(--renato-color) !important; }
+        .text-belen { color: var(--belen-color) !important; }
         
+        /* Estilos específicos para las cards de tareas */
+        .user-renato { background-color: var(--renato-bg); color: #00695c; }
+        .user-belen { background-color: var(--belen-bg); color: #6a1b9a; }
+        
+        .tarea-card {
+            border: none;
+            transition: all 0.2s ease;
+        }
+        
+        .tarea-completada {
+            opacity: 0.6;
+            filter: grayscale(0.4);
+        }
+
         .card-sueldo {
             transition: transform 0.2s ease;
             border: none;
@@ -27,6 +48,51 @@
 
 {% block content %}
 <div class="container p-0">
+    <div class="main-card shadow-sm p-4 mb-4" style="border-radius: 25px; background: white;">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-bold m-0" style="color: var(--active-color);">
+                <i class="bi bi-calendar-check me-2"></i>Tareas de Hoy
+            </h5>
+            <span class="badge rounded-pill {% if tareas_hoy %}bg-primary{% else %}bg-light text-muted{% endif %}">
+                {{ tareas_hoy|length }}
+            </span>
+        </div>
+
+        <div class="tareas-hoy-list">
+            {% for tarea in tareas_hoy %}
+                <div class="tarea-card p-3 d-flex align-items-center mb-2 shadow-sm
+                    {% if tarea.responsable.username|lower == 'renato' %}user-renato border-renato
+                    {% else %}user-belen border-belen{% endif %} 
+                    {% if tarea.completada %}tarea-completada{% endif %}" 
+                    style="border-radius: 15px;">
+                    
+                    <div class="flex-grow-1">
+                        <div class="fw-bold" style="font-size: 0.9rem;">
+                            {% if tarea.tarea %}{{ tarea.tarea.nombre }}{% else %}{{ tarea.nombre_manual }}{% endif %}
+                        </div>
+                        <div class="small opacity-75" style="font-size: 0.8rem;">
+                            {{ tarea.responsable.username|title }}
+                        </div>
+                    </div>
+                    
+                    {% if tarea.completada %}
+                        <i class="bi bi-check-circle-fill text-success fs-5"></i>
+                    {% else %}
+                        <i class="bi bi-circle text-muted fs-5"></i>
+                    {% endif %}
+                </div>
+            {% empty %}
+                <div class="text-center py-4">
+                    <i class="bi bi-stars fs-1 opacity-25"></i>
+                    <p class="text-muted small mt-2">No hay tareas planificadas para este día.</p>
+                    <a href="{% url 'planificador' %}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                        Ir al planificador
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
     <div class="main-card shadow-sm border-0 p-4 mb-4">
         <div class="d-flex align-items-center mb-4">
             <i class="bi bi-cash-stack me-2 text-primary-teal fs-4"></i>
@@ -101,7 +167,4 @@
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block extra_js %}
 {% endblock %}

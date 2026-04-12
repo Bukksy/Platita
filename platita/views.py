@@ -1,17 +1,31 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
 from django.db.models import Sum
 from django.utils import timezone
 from datetime import datetime, timedelta, date
-from .models import Gasto, RegistroSueldo, Perfil, CompraAlimentacion,CargaMensual
-from .forms import GastoForm, GastoAlimentacionForm
+from .models import *
+from .forms import *
+from .utils import generar_plan_semanal
 
-@login_required
 def index(request):
     hoy = timezone.now()
     mes_actual = hoy.month
     anio_actual = hoy.year
     
+    # --- Lógica del Planificador ---
+    dias_map = {0: 'LU', 1: 'MA', 2: 'MI', 3: 'JU', 4: 'VI', 5: 'SA', 6: 'DO'}
+    cod_hoy = dias_map[hoy.weekday()]
+    
+    lunes_ref = hoy.date() - timedelta(days=hoy.weekday())
+        
+    tareas_hoy = TareaAsignada.objects.filter(
+    fecha_semana=lunes_ref, 
+    dia=cod_hoy
+    ).select_related('responsable', 'tarea')
+    # -------------------------------
+
     if mes_actual == 12:
         mes_prox, anio_prox = 1, anio_actual + 1
     else:
@@ -32,6 +46,9 @@ def index(request):
         'integrantes_proximo': integrantes_proximo,
         'total_ingresos': sum(i.total_mes for i in integrantes_actual),
         'total_proximo': sum(i.total_mes for i in integrantes_proximo),
+        # Nuevos datos para el template
+        'tareas_hoy': tareas_hoy,
+        'hoy_plan': hoy,
     }
     return render(request, 'platita/index.html', context)
 
@@ -221,3 +238,73 @@ def eliminar_compra_alimentacion(request, pk):
     anio = compra.fecha.year
     compra.delete()
     return redirect(f'/alimentacion/?mes={mes}&anio={anio}')
+
+def planificador_semanal(request):
+    hoy = date.today()
+    if hoy.weekday() == 6:
+        lunes = hoy + timedelta(days=1)
+    else:
+        lunes = hoy - timedelta(days=hoy.weekday())
+        
+    tareas_raw = TareaAsignada.objects.filter(fecha_semana=lunes)
+    ya_sorteado = tareas_raw.filter(tarea__isnull=False).exists()
+    
+    plan_por_dia = []
+    for cod, nombre in DIAS_CHOICES:
+        tareas_del_dia = tareas_raw.filter(dia=cod)
+        plan_por_dia.append({
+            'codigo': cod,
+            'nombre': nombre,
+            'tareas': tareas_del_dia
+        })
+
+    return render(request, 'platita/planificador.html', {
+        'plan_por_dia': plan_por_dia,
+        'hoy': lunes,
+        'ya_sorteado': ya_sorteado
+    })
+
+def sortear_semana(request):
+    if request.method == 'POST':
+        hoy = date.today()
+        if hoy.weekday() == 6:
+            lunes = hoy + timedelta(days=1)
+        else:
+            lunes = hoy - timedelta(days=hoy.weekday())
+            
+        if not TareaAsignada.objects.filter(fecha_semana=lunes, tarea__isnull=False).exists():
+            generar_plan_semanal()
+            
+    return redirect('planificador')
+
+@require_POST
+def completar_tarea(request, tarea_id):
+    try:
+        tarea = TareaAsignada.objects.get(id=tarea_id)
+        tarea.completada = not tarea.completada
+        tarea.save()
+        return JsonResponse({'status': 'success', 'completada': tarea.completada})
+    except TareaAsignada.DoesNotExist:
+        return JsonResponse({'status': 'error'}, status=404)
+
+def agregar_tarea_extra(request):
+    if request.method == 'POST':
+        descripcion = request.POST.get('descripcion')
+        dia = request.POST.get('dia')
+        responsable_name = request.POST.get('responsable')
+        
+        from django.contrib.auth.models import User
+        user = User.objects.filter(username__iexact=responsable_name).first()
+        
+        hoy = date.today()
+        lunes = hoy - timedelta(days=hoy.weekday())
+        
+        if user:
+            TareaAsignada.objects.create(
+                tarea=None,
+                nombre_manual=descripcion,
+                dia=dia,
+                responsable=user,
+                fecha_semana=lunes
+            )
+    return redirect('planificador')

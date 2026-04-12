@@ -14,4 +14,8 @@ urlpatterns = [
     path('alimentacion/', views.alimentacion, name="alimentacion"),
     path('alimentacion/crear/', views.crear_compra_alimentacion, name='crear_compra_alimentacion'),
     path('alimentacion/eliminar/<int:pk>/', views.eliminar_compra_alimentacion, name='eliminar_compra'),
+    path('planificador/', views.planificador_semanal, name='planificador'),
+    path('planificador/sortear/', views.sortear_semana, name='sortear_semana'),
+    path('planificador/completar/<int:tarea_id>/', views.completar_tarea, name='completar_tarea'),
+    path('planificador/extra/', views.agregar_tarea_extra, name='agregar_tarea_extra'),
 ]
