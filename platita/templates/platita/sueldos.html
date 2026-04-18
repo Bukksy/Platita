@@ -6,6 +6,28 @@
     {% if perfil_sel.usuario.username|lower == 'renato' %}theme-teal
     {% else %}theme-purple{% endif %}">
 
+    <div class="d-flex justify-content-center mb-3">
+        <form method="GET" class="d-flex align-items-center bg-light rounded-pill p-1 px-3 shadow-sm" style="border: 1px solid #e2e8f0;">
+            <input type="hidden" name="perfil_id" value="{{ perfil_sel.id }}">
+            <i class="bi bi-calendar3 text-muted me-2"></i>
+            <select name="mes" class="form-select border-0 bg-transparent fw-bold ps-0" 
+                    style="color: var(--active-color); box-shadow: none; cursor: pointer; min-width: 130px;" 
+                    onchange="this.form.submit()">
+                <option value="1" {% if registro.mes == 1 %}selected{% endif %}>Enero</option>
+                <option value="2" {% if registro.mes == 2 %}selected{% endif %}>Febrero</option>
+                <option value="3" {% if registro.mes == 3 %}selected{% endif %}>Marzo</option>
+                <option value="4" {% if registro.mes == 4 %}selected{% endif %}>Abril</option>
+                <option value="5" {% if registro.mes == 5 %}selected{% endif %}>Mayo</option>
+                <option value="6" {% if registro.mes == 6 %}selected{% endif %}>Junio</option>
+                <option value="7" {% if registro.mes == 7 %}selected{% endif %}>Julio</option>
+                <option value="8" {% if registro.mes == 8 %}selected{% endif %}>Agosto</option>
+                <option value="9" {% if registro.mes == 9 %}selected{% endif %}>Septiembre</option>
+                <option value="10" {% if registro.mes == 10 %}selected{% endif %}>Octubre</option>
+                <option value="11" {% if registro.mes == 11 %}selected{% endif %}>Noviembre</option>
+                <option value="12" {% if registro.mes == 12 %}selected{% endif %}>Diciembre</option>
+            </select>
+        </form>
+    </div>
     <div class="d-flex justify-content-center mb-4 p-2 bg-light rounded-pill" style="max-width: fit-content; margin: 0 auto;">
         {% for integrante in integrantes %}
             <a href="?perfil_id={{ integrante.id }}&mes={{ registro.mes }}" 
